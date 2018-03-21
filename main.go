@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	"github.com/ghodss/yaml"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"strconv"
+
+	"github.com/ghodss/yaml"
+	"github.com/sirupsen/logrus"
 )
 
 var version = "undefined"
@@ -17,7 +18,7 @@ func main() {
 	}
 	logrus.SetFormatter(formatter)
 
-	a := App{}
+	a := app{}
 	flag.IntVar(&a.Port, "port", 8000, "Application port")
 	var config = flag.String("config", "config.yaml", "Config file path")
 	flag.Parse()
@@ -27,8 +28,7 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	err = yaml.Unmarshal(file, &a)
-	if err != nil {
+	if err := yaml.Unmarshal(file, &a); err != nil {
 		logrus.Fatal(err)
 	}
 
@@ -41,5 +41,7 @@ func main() {
 		"version": version,
 	}).Info("Countme is running on :", a.Port)
 
-	a.Run()
+	if err := a.Run(); err != nil {
+		logrus.Fatal(err)
+	}
 }
