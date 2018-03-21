@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-countme
+  labels:
+    app: countme
+    release: {{ .Release.Name }}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: countme
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: countme
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: mfouilleul/countme:0.1.2
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: config
+          mountPath: /etc/countme.yaml
+          subPath: countme.yaml
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: {{ .Release.Name }}-countme
