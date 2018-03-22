@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: {{ .Chart.Name }}
-        image: mfouilleul/countme:0.1.2
+        image: mfouilleul/countme:0.1.3
         ports:
         - containerPort: 8000
         volumeMounts:
