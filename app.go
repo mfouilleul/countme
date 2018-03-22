@@ -2,24 +2,25 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/cenkalti/backoff"
 	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
-type App struct {
+type app struct {
 	Port  int
-	Redis DB `json:"database"`
+	Redis db `json:"database"`
 }
 
-type DB struct {
+type db struct {
 	Hostname string `json:"hostname"`
 	Port     int    `json:"port"`
 	Conn     *redis.Client
 }
 
-func (a *App) Help(w http.ResponseWriter, r *http.Request) {
+func (a *app) Help(w http.ResponseWriter, r *http.Request) {
 	help := `PUT /incr
 GET /count
 GET /version`
@@ -27,11 +28,11 @@ GET /version`
 	fmt.Fprintf(w, help)
 }
 
-func (a *App) Version(w http.ResponseWriter, r *http.Request) {
+func (a *app) Version(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, version)
 }
 
-func (a *App) Count(w http.ResponseWriter, r *http.Request) {
+func (a *app) Count(w http.ResponseWriter, r *http.Request) {
 
 	val, err := a.Redis.Conn.Get("countme").Result()
 	if err != nil {
@@ -41,7 +42,7 @@ func (a *App) Count(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, val)
 }
 
-func (a *App) Incr(w http.ResponseWriter, r *http.Request) {
+func (a *app) Incr(w http.ResponseWriter, r *http.Request) {
 	_, err := a.Redis.Conn.Incr("countme").Result()
 
 	if err != nil {
@@ -51,7 +52,7 @@ func (a *App) Incr(w http.ResponseWriter, r *http.Request) {
 	a.Count(w, r)
 }
 
-func (a *App) Initialize() error {
+func (a *app) Initialize() error {
 	cs := fmt.Sprintf("%s:%d", a.Redis.Hostname, a.Redis.Port)
 	a.Redis.Conn = redis.NewClient(&redis.Options{
 		Addr: cs,
@@ -75,12 +76,12 @@ func (a *App) Initialize() error {
 	return err
 }
 
-func (a *App) Run() {
+func (a *app) Run() error {
 	http.HandleFunc("/", a.Help)
 	http.HandleFunc("/count", a.Count)
 	http.HandleFunc("/incr", a.Incr)
 	http.HandleFunc("/version", a.Version)
 
 	addr := fmt.Sprintf(":%d", a.Port)
-	http.ListenAndServe(addr, nil)
+	return http.ListenAndServe(addr, nil)
 }

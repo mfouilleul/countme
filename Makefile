@@ -2,7 +2,6 @@
 GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
-GOGET=$(GOCMD) get
 BINARY_NAME=countme
 BINARY_UNIX=$(BINARY_NAME)_unix
 DOCKERCMD=docker
@@ -26,20 +25,11 @@ run:
 	$(GOBUILD) ${LDFLAGS} -o $(BINARY_NAME) ./...
 	./$(BINARY_NAME)
 deps:
-	$(GOGET) github.com/go-redis/redis
-	$(GOGET) net/http
-	$(GOGET) github.com/ghodss/yaml
-	$(GOGET) github.com/cenkalti/backoff
-	$(GOGET) github.com/sirupsen/logrus
-
-
-
+	dep ensure
 docker: docker-build docker-push
-
 docker-build:
 	$(DOCKERBUILD) -t $(DOCKERREPO)/$(BINARY_NAME):latest .
 	$(DOCKERTAG) $(DOCKERREPO)/$(BINARY_NAME):latest $(DOCKERREPO)/$(BINARY_NAME):$(VERSION)
-
 docker-push:
 	$(DOCKERPUSH) $(DOCKERREPO)/$(BINARY_NAME):latest
 	$(DOCKERPUSH) $(DOCKERREPO)/$(BINARY_NAME):$(VERSION)
